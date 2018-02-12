@@ -40,6 +40,8 @@ namespace AdventureWorksCore
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseStaticFiles();
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -48,14 +50,13 @@ namespace AdventureWorksCore
                     );
 
                 routes.MapRoute(
-    name: "Default",
-    template: "{controller}/{action}",
-    defaults: new
-    {
-        controller = "Customers",
-        action = "Index"
-    }
-    ); //TODO Defaults
+                    name: "Default",
+                    template: "{controller}/{action}",
+                    defaults: new
+                    {
+                        controller = "Customers",
+                        action = "Index"
+                    });
             });
         }
     }

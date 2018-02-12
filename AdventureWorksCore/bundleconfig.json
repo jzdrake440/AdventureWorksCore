@@ -1,0 +1,45 @@
+﻿[
+  //CSS
+  {
+    "outputFileName": "wwwroot/css/bootstrap.css",
+    "inputFiles": [
+      "node_modules/bootstrap/dist/css/bootstrap.css"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/css/dataTables.css",
+    "inputFiles": [
+      "node_modules/datatables/media/css/jquery.dataTables.css",
+      "node_modules/datatables-bootstrap/css/dataTables.bootstrap.css"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+
+  //Javascript
+  {
+    "outputFileName": "wwwroot/js/lib.js",
+    "inputFiles": [
+      "node_modules/jquery/dist/jquery.js",
+      "node_modules/popper.js/dist/umd/popper.js",
+      "node_modules/bootstrap/dist/js/bootstrap.js"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/js/dataTables.js",
+    "inputFiles": [
+      "node_modules/datatables/media/js/jquery.dataTables.js",
+      "node_modules/datatables-bootstrap/js/dataTables.bootstrap.js"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  }
+]
