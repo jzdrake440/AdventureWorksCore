@@ -1,0 +1,10 @@
+﻿WebApi2 had a json parser for the query data and Core MVC does not.  This caused issues binding nested objects. I found that I had to change the DataTable to POST to get around this issue.
+
+While researching the problem, I found someone that stated "complex json data shouldn't be in the query string". I agree with this philosophy.
+
+In an enterprise environment, a requirement might arrise requesting users have the capability to bookmark/favorite their searches.  This would require going back to GET and additional frontend logic updating the url.  A more complex binding is most likely capable with custom binders.
+
+I moved the logic for the DataTable to the DataTableUtility for DRY prinicples.
+
+I decided to create a controller for each DataTable type for less Injected Dependencies.
+

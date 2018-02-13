@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AdventureWorksCore.Models.Entity
 {
@@ -36,5 +37,14 @@ namespace AdventureWorksCore.Models.Entity
         public ICollection<EmailAddress> EmailAddress { get; set; }
         public ICollection<PersonCreditCard> PersonCreditCard { get; set; }
         public ICollection<PersonPhone> PersonPhone { get; set; }
+
+        [NotMapped]
+        public string DisplayName
+        {
+            get
+            {
+                return LastName + ", " + FirstName;
+            }
+        }
     }
 }

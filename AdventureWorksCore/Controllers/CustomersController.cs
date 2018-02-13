@@ -16,6 +16,9 @@ namespace AdventureWorksCore.Controllers
             _context = context;
         }
 
+        [Route("")]//TODO remove for home page
+        [Route("Customers")]
+        [Route("Customers/Index")]
         public IActionResult Index()
         {
             return View();

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using AutoMapper;
 
 namespace AdventureWorksCore
 {
@@ -27,6 +28,7 @@ namespace AdventureWorksCore
         {
 
             services.AddMvc();
+            services.AddAutoMapper();
 
             services.AddDbContext<AdventureWorks2017Context>(
                 options => options.UseSqlServer(Configuration.GetConnectionString("AdventureWorks2017")));
@@ -41,23 +43,24 @@ namespace AdventureWorksCore
             }
 
             app.UseStaticFiles();
+            app.UseMvc();
+            //app.UseMvc(routes =>
+            //{
+            //    routes.MapRoute(
+            //        name: "ApiRoute",
+            //        template: "api/{controller}/{id}"
+            //        );
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "DefaultWithId",
-                    template: "{controller}/{action}/{id}"
-                    );
-
-                routes.MapRoute(
-                    name: "Default",
-                    template: "{controller}/{action}",
-                    defaults: new
-                    {
-                        controller = "Customers",
-                        action = "Index"
-                    });
-            });
+            //    routes.MapRoute(
+            //        name: "Default",
+            //        template: "{controller}/{action}/{id}",
+            //        defaults: new
+            //        {
+            //            controller = "Customers",
+            //            action = "Index",
+                        
+            //        });
+            //});
         }
     }
 }

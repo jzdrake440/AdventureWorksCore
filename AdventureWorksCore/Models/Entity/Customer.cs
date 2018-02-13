@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AdventureWorksCore.Models.Entity
 {
@@ -22,5 +23,29 @@ namespace AdventureWorksCore.Models.Entity
         public Store Store { get; set; }
         public SalesTerritory Territory { get; set; }
         public ICollection<SalesOrderHeader> SalesOrderHeader { get; set; }
+
+        [NotMapped]
+        public string AccountType
+        {
+            get
+            {
+                if (Person != null)
+                    return "Person";
+
+                if (Store != null)
+                    return "Store";
+
+                return "Unknown";
+            }
+        }
+
+        [NotMapped]
+        public string DisplayName
+        {
+            get
+            {
+                return Person?.DisplayName ?? Store?.Name ?? "Unknown";
+            }
+        }
     }
 }
