@@ -27,7 +27,12 @@ namespace AdventureWorksCore.Controllers.DataTables
         [HttpPost]
         public IActionResult GetCustomerDataTable(DataTableServerSideRequest request)
         {
-            return Ok(DataTableUtility.GetDataTableData(request, _mapper, _context.Customer.Include(c => c.Person)));
+            return Ok(DataTableUtility.GetDataTableData(
+                request, 
+                _mapper, 
+                _context.Customer
+                    .Include(c => c.Person)
+                    .Include(c => c.Store)));
         }
     }
 }

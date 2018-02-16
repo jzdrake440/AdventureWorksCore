@@ -1,5 +1,9 @@
 ﻿namespace AdventureWorksCore.Models.DataTables
 {
+    /*
+     * Model for requests sent by DataTables.
+     * https://datatables.net/manual/server-side
+     */
     public class DataTableServerSideRequest
     {
         public int Draw { get; set; }

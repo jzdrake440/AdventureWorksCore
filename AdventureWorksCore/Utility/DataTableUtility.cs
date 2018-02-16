@@ -1,25 +1,43 @@
 ﻿using AdventureWorksCore.Models.DataTables;
 using AutoMapper;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using static AdventureWorksCore.Models.DataTables.DataTableServerSideRequest;
+using System.ComponentModel.DataAnnotations.Schema;
+using AgileObjects.ReadableExpressions;
+using System.Diagnostics;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace AdventureWorksCore.Utility
 {
     public static class DataTableUtility
     {
-        public static List<T> FilterData<T>(DataTableServerSideRequest request, IEnumerable<T> data)
-        {
-            return data.Where(SearchPredicate<T>(request)).ToList();
-        }
 
-        public static Func<T, bool> SearchPredicate<T>(DataTableServerSideRequest request)
+
+        /*
+         * Build a search (filter) predicate for DataTables.
+         * Search Definition: https://datatables.net/reference/api/search
+         * 
+         * TODO:
+         *   -Smart Search Feature: Match words out of order.
+         *   -Smart Search Feature: Preserved text.
+         *   -Privledged Feature: Regex
+         * 
+         * COMPLETED:
+         *   -Smart Search Feature: Partial word matching.
+         *   
+         * IN PROGRESS:
+         *   -Optimization
+         *      --Where queries are not running on db
+         *      --Non-basic OrderBy queries are not running on db
+         */
+        public static IQueryable<T> FilterData<T>(DataTableServerSideRequest request, IQueryable<T> data)
         {
-            ParameterExpression pe = Expression.Parameter(typeof(T));
-            Expression globalSearchValue = ToStringExpression(Expression.Constant(request.Search.Value));
+            ParameterExpression pe = Expression.Parameter(typeof(T));  //i.e. t =>
+
+            //init constant expression value for searching on all columns
+            Expression globalSearchValue = ExpressionUtility.CallToString(Expression.Constant(request.Search.Value)); //i.e. 13.ToString()
 
             bool searchOnGlobal = !String.IsNullOrWhiteSpace(request.Search.Value);
 
@@ -30,158 +48,90 @@ namespace AdventureWorksCore.Utility
                 if (!column.Searchable)
                     continue;
 
-                if (column.Data == null)
+                if (column.Data == null) //not a data column
                     continue;
 
                 var prop = typeof(T).GetProperty(column.Data,
-                    BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public);
+                    BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public); //Ignore Case for JSON
 
-                Expression targetValue = ToStringExpression(Expression.Property(pe, prop)); //i.e. customer.AccountNumber
+                Expression targetValue = ExpressionUtility.CallToString(ReflectionUtility.GetterExpression(prop, pe)); //i.e. customer.AccountNumber
 
                 if (!String.IsNullOrWhiteSpace(column.Search.Value))
                 {
-                    Expression columnSearchValue = ToStringExpression(Expression.Constant(column.Search.Value));
-                    columnFilterExpression = AndAlsoIgnoreNull(columnFilterExpression, ContainsExpression(targetValue, columnSearchValue));
+                    Expression columnSearchValue = ExpressionUtility.CallToString(Expression.Constant(column.Search.Value));
+                    columnFilterExpression = ExpressionUtility.AndAlsoIgnoreNull(
+                        columnFilterExpression,
+                        ExpressionUtility.CallContains(targetValue, columnSearchValue));
                 }
 
                 if (!searchOnGlobal)
                     continue;
 
-                globalFilterExpression = OrElseIgnoreNull(globalFilterExpression, ContainsExpression(targetValue, globalSearchValue));
+                globalFilterExpression = ExpressionUtility.OrElseIgnoreNull(
+                    globalFilterExpression,
+                    ExpressionUtility.CallContains(targetValue, globalSearchValue));
             }
 
-            Expression masterExpression = AndAlsoIgnoreNull(columnFilterExpression, globalFilterExpression);
+            Expression masterExpression = ExpressionUtility.AndAlsoIgnoreNull(columnFilterExpression, globalFilterExpression);
+            Debug.WriteLine(masterExpression?.ToReadableString());
 
             if (masterExpression == null)
-                return c => true;
-            else
-                return Expression.Lambda<Func<T, bool>>(masterExpression, pe).Compile();
+                return data;
+
+            return data.Where(Expression.Lambda<Func<T, bool>>(masterExpression, pe));
         }
 
-        private static Expression ToStringExpression(Expression e)
+        public static IQueryable<T> OrderData<T>(DataTableServerSideRequest request, IQueryable<T> data)
         {
-            return Expression.Call(e, "ToString", Type.EmptyTypes);
-        }
-
-        private static Expression ContainsExpression(Expression caller, Expression arg1)
-        {
-
-            return Expression.Call(caller, "Contains", Type.EmptyTypes, arg1);
-        }
-
-        private static Expression OrElseIgnoreNull(Expression left, Expression right)
-        {
-            if (left == null && right == null)
-                return null;
-
-            if (left == null)
-                return right;
-
-            if (right == null)
-                return left;
-
-            return Expression.OrElse(left, right);
-        }
-
-        private static Expression AndAlsoIgnoreNull(Expression left, Expression right)
-        {
-            if (left == null && right == null)
-                return null;
-
-            if (left == null)
-                return right;
-
-            if (right == null)
-                return left;
-
-            return Expression.AndAlso(left, right);
-        }
-
-        public static void OrderData<T>(DataTableServerSideRequest request, List<T> data)
-        {
-            List<DataTableOrderDataOption> options = new List<DataTableOrderDataOption>();
-
-            foreach (DataTableOrder order in request.Order) //simplify the in data for the compare delegate
+            bool first = true; //denotes the first order expression uses OrderBy and subsequent order expressions use ThenBy
+            foreach (DataTableOrder order in request.Order)
             {
-                if (!request.Columns[order.Column].Orderable)
-                    continue;
-
-                if (request.Columns[order.Column].Data == null)
-                    continue;
+                ParameterExpression pe = Expression.Parameter(typeof(T));
 
                 var prop = typeof(T).GetProperty(
-                    request.Columns[order.Column].Data, 
-                    BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public);
-
-                bool isNullable = prop.PropertyType.IsGenericType && 
-                    typeof(Nullable<>) == prop.PropertyType.GetGenericTypeDefinition();
-
-                var underlyingType = isNullable ?
-                    prop.PropertyType.GetGenericArguments()[0] :
-                    prop.PropertyType;
-
-                var option = new DataTableOrderDataOption
-                {
-                    Property = prop,
-                    FromNullable = isNullable,
-                    Comparable = underlyingType.GetInterface("IComparable")?.GetMethod("CompareTo"),
-                    Direction = order.Dir
-                };
+                    request.Columns[order.Column].Data,
+                    BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public); //Ignore Case for JSON
 
 
-                if (option.Comparable == null) //ensure that the dynamic field is properly comparable
-                    throw new ArgumentException(
-                        String.Format(
-                            "Attempting to sort on uncomparable property {0}.{1}; Implement the IComparable interface.",
-                            typeof(T).FullName,
-                            option.Property.Name)
-                        );
 
-                options.Add(option);
+                var funcType = typeof(Func<,>).MakeGenericType(typeof(T), prop.PropertyType);
+
+                //there are 2 methods with the same parameter signature, but one of them is a generic method
+                //GetMethod wont work in this case since it cannot differentiate between the two
+                var lambdaMethod = typeof(Expression)
+                    .GetMethods().Single(
+                    m =>
+                        m.Name == nameof(Expression.Lambda) &&
+                        m.IsGenericMethod &&
+                        m.GetParameters().Length == 2 &&
+                        m.GetParameters()[0].ParameterType == typeof(Expression) &&
+                        m.GetParameters()[1].ParameterType == typeof(ParameterExpression[]))
+                    .MakeGenericMethod(funcType);
+
+                //this method is an extension method
+                //GetMethod wont work with extension methods
+                var orderMethod = typeof(Queryable)
+                    .GetMethods().Single(
+                    m =>
+                        m.Name == (first ?
+                                    (order.Dir == "desc" ? nameof(Queryable.OrderByDescending) : nameof(Queryable.OrderBy)) :
+                                    (order.Dir == "desc" ? nameof(Queryable.ThenByDescending) : nameof(Queryable.ThenBy))
+                                    ) &&
+                        m.GetParameters().Length == 2)
+                    .MakeGenericMethod(typeof(T), prop.PropertyType);
+
+                first = false;
+
+                var exp = ReflectionUtility.GetterExpression(prop, pe);
+                //var lambda = Expression.Lambda<Func<T, >>(exp, pe);
+
+                var lambda = lambdaMethod.Invoke(null, new object[] { exp, new[] { pe } });
+                data = (IQueryable<T>)orderMethod.Invoke(null, new[] { data, lambda });
             }
-
-            data.Sort((t1, t2) =>
-            {
-                foreach (DataTableOrderDataOption option in options)
-                {
-                    var propVal1 = option.Property.GetValue(t1);
-                    var propVal2 = option.Property.GetValue(t2);
-
-                    if (propVal1 == null && propVal2 == null)
-                        continue;
-
-                    if (propVal1 == null)
-                        return option.Dir(-1);
-
-                    if (propVal2 == null)
-                        return option.Dir(1);
-
-                    int c = (int)option.Comparable.Invoke(propVal1, new object[] { propVal2 });
-
-                    if (c != 0)
-                        return option.Dir(c);
-                }
-                return 0;
-            });
+            return data;
         }
 
-        private class DataTableOrderDataOption
-        {
-            public const string DIRECTION_ASC = "asc";
-            public const string DIRECTION_DESC = "desc";
-
-            public PropertyInfo Property { get; set; }
-            public MethodInfo Comparable { get; set; }
-            public bool FromNullable { get; set; }
-            public string Direction { get; set; }
-
-            public int Dir(int c) //change direction as necessary
-            {
-                return Direction == DIRECTION_ASC ? c : c * -1;
-            }
-        }
-
-        public static DataTableServerSideResponse<T> GetDataTableData<T>(DataTableServerSideRequest request, IMapper mapper, IEnumerable<T> data)
+        public static DataTableServerSideResponse<T> GetDataTableData<T>(DataTableServerSideRequest request, IMapper mapper, IQueryable<T> data)
         {
             DataTableServerSideResponse<T> response = new DataTableServerSideResponse<T>
             {
@@ -189,20 +139,28 @@ namespace AdventureWorksCore.Utility
                 RecordsTotal = data.Count() //total number of records before filtering
             };
 
-            //Search Filtering
-            var filteredData = FilterData(request, data);
-            response.RecordsFiltered = filteredData.Count(); //total number of records after filtering
+            data = FilterData(request, data);
+            data = OrderData(request, data);
 
-            //Ordering
-            OrderData(request, filteredData);
+            response.RecordsFiltered = data.Count(); //total number of records after filtering
 
-            //Pagination
-            if (filteredData.Count < request.Start + request.Length) //i.e. start = 51, length = 10, count = 55; 55 < 51 + 10
-                response.Data = mapper.Map<List<T>>(filteredData.GetRange(request.Start, filteredData.Count - request.Start));// i.e. cont GetRange(51, 55-51)
-            else
-                response.Data = mapper.Map<List<T>>(filteredData.GetRange(request.Start, request.Length));
+
+            response.Data = data.Skip(request.Start).Take(request.Length).ToList();
 
             return response;
+        }
+
+        public static void CollectColumnMetaData<T>(DataTableServerSideRequest request)
+        {
+            foreach (var column in request.Columns)
+            {
+                var prop = typeof(T).GetProperty(column.Data,
+                    BindingFlags.IgnoreCase | BindingFlags.Instance | BindingFlags.Public);
+
+                var isMapped = prop.IsDefined(typeof(NotMappedAttribute));
+
+            }
+
         }
     }
 }

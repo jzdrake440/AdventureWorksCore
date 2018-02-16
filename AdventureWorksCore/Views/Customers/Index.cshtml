@@ -27,42 +27,50 @@
 @section scripts
     {
     <script type="text/javascript">
-    var table;
-    $(document).ready(function () {
-        table = $('#customerTable').DataTable({
-            serverSide: true,
-            responsive: true,
-            orderCellsTop: true,
-            ajax: {
-                url: '/dt/customers',
-                dataSrc: 'data',
-                type: 'POST'
-            },
-            columns: [
-                {
-                    name: 'customerId',
-                    data: 'customerId'
+        var table;
+        $(document).ready(function () {
+            table = $('#customerTable').DataTable({
+                serverSide: true,
+                responsive: true,
+                orderCellsTop: true,
+                searchDelay: 1000,
+                ajax: {
+                    url: '/dt/customers',
+                    dataSrc: 'data',
+                    type: 'POST'
                 },
-                {
-                    name: 'accountNumber',
-                    data: 'accountNumber'
-                },
-                {
-                    name: 'accountType',
-                    data: 'accountType',
-                },
-                {
-                    name: 'displayName',
-                    data: 'displayName'
-                }
-            ]
+                columns: [
+                    {
+                        name: 'customerId',
+                        data: 'customerId'
+                    },
+                    {
+                        name: 'accountNumber',
+                        data: 'accountNumber'
+                    },
+                    {
+                        name: 'accountType',
+                        data: 'accountType',
+                    },
+                    {
+                        name: 'displayName',
+                        data: 'displayName'
+                    }
+                ]
+            });
         });
-    });
 
-    function filterColumn(column, value) {
-        table.column(column + ":name").search(value);
-        table.draw();
-    }
+        var colTimeout = {};
+        function filterColumn(columnName, value) {
+            var column = table.column(columnName + ":name");
+            column.search(value);
+
+            clearTimeout(colTimeout[column]);
+
+            colTimeout[column] = setTimeout(function () {
+                table.draw();
+            }, table.context[0].searchDelay);
+        }
 
     </script>
 }

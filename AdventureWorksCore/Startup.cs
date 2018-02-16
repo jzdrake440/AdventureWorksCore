@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
+using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace AdventureWorksCore
 {
@@ -27,7 +29,9 @@ namespace AdventureWorksCore
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddMvc();
+            services.AddMvc()
+                .AddJsonOptions(options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+            
             services.AddAutoMapper();
 
             services.AddDbContext<AdventureWorks2017Context>(
@@ -35,7 +39,7 @@ namespace AdventureWorksCore
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -44,23 +48,6 @@ namespace AdventureWorksCore
 
             app.UseStaticFiles();
             app.UseMvc();
-            //app.UseMvc(routes =>
-            //{
-            //    routes.MapRoute(
-            //        name: "ApiRoute",
-            //        template: "api/{controller}/{id}"
-            //        );
-
-            //    routes.MapRoute(
-            //        name: "Default",
-            //        template: "{controller}/{action}/{id}",
-            //        defaults: new
-            //        {
-            //            controller = "Customers",
-            //            action = "Index",
-                        
-            //        });
-            //});
         }
     }
 }

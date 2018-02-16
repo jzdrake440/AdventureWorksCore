@@ -1,6 +1,9 @@
-﻿using System;
+﻿using AdventureWorksCore.Utility;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace AdventureWorksCore.Models.Entity
 {
@@ -39,12 +42,26 @@ namespace AdventureWorksCore.Models.Entity
         public ICollection<PersonPhone> PersonPhone { get; set; }
 
         [NotMapped]
+        [CustomGetterExpression(typeof(Person), nameof(DisplayNameExpression))]
         public string DisplayName
         {
             get
             {
                 return LastName + ", " + FirstName;
             }
+        }
+
+        public static Expression DisplayNameExpression(Expression expression)
+        {
+            Expression lastNameProperty = Expression.Property(expression, nameof(LastName));
+            Expression firstNameProperty = Expression.Property(expression, nameof(FirstName));
+            Expression separatorExpression = Expression.Constant(", ");
+
+            MethodInfo concatMethod = typeof(string).GetMethod("Concat", new []{ typeof(string[]) });
+
+            Expression arrayExpression = Expression.NewArrayInit(typeof(string), new[] { lastNameProperty, separatorExpression, firstNameProperty });
+
+            return Expression.Call(null, concatMethod, new[] { arrayExpression });
         }
     }
 }

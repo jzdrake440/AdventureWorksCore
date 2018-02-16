@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AgileObjects.ReadableExpressions" Version="1.11.0" />
     <PackageReference Include="AutoMapper" Version="6.2.2" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="3.2.0" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.6.362" />
