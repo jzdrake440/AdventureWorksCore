@@ -34,11 +34,11 @@ namespace AdventureWorks.BLL
 
         public CustomerType GetCustomerType()
         {
-            if (Store != null)
-                return BLL.CustomerType.STORE;
-
             if (Person != null)
                 return BLL.CustomerType.PERSON;
+
+            if (Store != null)
+                return BLL.CustomerType.STORE;
 
             return BLL.CustomerType.UNKNOWN;
         }
