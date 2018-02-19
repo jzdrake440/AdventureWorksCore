@@ -6,6 +6,6 @@ namespace AdventureWorks.BLL.Services
     public interface IPpeService
     {
         void AddExpression<T>(string propertyName, Func<Expression, Expression> expressionFunc);
-        Expression GetExpression<T>(string propertyName, Expression parameter);
+        Expression GetExpression<T>(Expression parameter, string propertyName);
     }
 }

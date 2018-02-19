@@ -26,11 +26,11 @@ namespace AdventureWorks.BLL.Services
             //Customer.CustomerType
             ppeService.AddExpression<Customer>(nameof(CustomerBl.CustomerType), pe =>
             {
-                Expression storeProperty = Expression.Property(pe, nameof(Customer.Store));
-                Expression personProperty = Expression.Property(pe, nameof(Customer.Person));
+                var storeProperty = Expression.Property(pe, nameof(Customer.Store));
+                var personProperty = Expression.Property(pe, nameof(Customer.Person));
 
-                Expression isStoreNotNull = ExpressionUtility.IsNotNull(storeProperty);
-                Expression isPersonNotNull = ExpressionUtility.IsNotNull(personProperty);
+                var isStoreNotNull = ExpressionUtility.IsNotNull(storeProperty);
+                var isPersonNotNull = ExpressionUtility.IsNotNull(personProperty);
 
                 return Expression.Condition(isPersonNotNull,
                     Expression.Constant(CustomerType.PERSON.GetDisplayValue()),
@@ -42,14 +42,14 @@ namespace AdventureWorks.BLL.Services
             //Customer.DisplayName
             ppeService.AddExpression<Customer>(nameof(CustomerBl.DisplayName), pe =>
             {
-                Expression storeProperty = Expression.Property(pe, nameof(Customer.Store));
-                Expression personProperty = Expression.Property(pe, nameof(Customer.Person));
+                var storeProperty = Expression.Property(pe, nameof(Customer.Store));
+                var personProperty = Expression.Property(pe, nameof(Customer.Person));
 
-                Expression storeName = Expression.Property(storeProperty, nameof(Store.Name));
-                Expression personName = ppeService.GetExpression<Person>(nameof(PersonBl.DisplayName), personProperty);
+                var storeName = Expression.Property(storeProperty, nameof(Store.Name));
+                var personName = ppeService.GetExpression<Person>(personProperty, nameof(PersonBl.DisplayName));
 
-                Expression isStoreNotNull = ExpressionUtility.IsNotNull(storeProperty);
-                Expression isPersonNotNull = ExpressionUtility.IsNotNull(personProperty);
+                var isStoreNotNull = ExpressionUtility.IsNotNull(storeProperty);
+                var isPersonNotNull = ExpressionUtility.IsNotNull(personProperty);
 
                 return Expression.Condition(isPersonNotNull,
                     personName,
@@ -61,15 +61,19 @@ namespace AdventureWorks.BLL.Services
             //Person.DisplayName
             ppeService.AddExpression<Person>(nameof(PersonBl.DisplayName), pe =>
             {
-                Expression lastNameProperty = Expression.Property(pe, nameof(Person.LastName));
-                Expression firstNameProperty = Expression.Property(pe, nameof(Person.FirstName));
-                Expression separatorExpression = Expression.Constant(", ");
+                var lastNameProperty = Expression.Property(pe, nameof(Person.LastName));
+                var firstNameProperty = Expression.Property(pe, nameof(Person.FirstName));
+                var separatorExpression = Expression.Constant(", ");
 
-                MethodInfo concatMethod = typeof(string).GetMethod(nameof(String.Concat), new[] { typeof(string[]) });
+                var concatMethod = typeof(string).GetMethod(nameof(String.Concat), new[] { typeof(string), typeof(string)});
 
-                Expression arrayExpression = Expression.NewArrayInit(typeof(string), new[] { lastNameProperty, separatorExpression, firstNameProperty });
-
-                return Expression.Call(null, concatMethod, new[] { arrayExpression });
+                return Expression.Add( //using Expression.Add instead of Expression.Call because the translator has difficulties translating String.Concat
+                    lastNameProperty, 
+                    Expression.Add(
+                        separatorExpression, 
+                        firstNameProperty, 
+                        concatMethod), 
+                    concatMethod);
             });
 
             return ppeService;

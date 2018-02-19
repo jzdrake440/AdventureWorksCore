@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using AdventureWorks.BLL.Utility;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using AdventureWorks.DAL;
 
 namespace AdventureWorks.BLL.Services
 {
@@ -36,22 +37,21 @@ namespace AdventureWorks.BLL.Services
          * 
          * COMPLETED:
          *   -Smart Search Feature: Partial word matching.
+         *   -Optimization
+         *      --Where queries are not running on db (in some cases)
+         *      --OrderBy queries are not running on db (in some cases)
          *   
          * IN PROGRESS:
-         *   -Optimization
-         *      --Where queries are not running on db
-         *      --Non-basic OrderBy queries are not running on db
          */
         public IQueryable<T> FilterData<T>(DataTableServerSideRequest request, IQueryable<T> data)
         {
             ParameterExpression pe = Expression.Parameter(typeof(T));  //i.e. t =>
 
             //init constant expression value for searching on all columns
-            var globalSearchValue = ExpressionUtility.CallToString(Expression.Constant(request.Search.Value)); //i.e. 13.ToString()
+            var globalSearchValue = Expression.Constant(request.Search.Value);
 
             bool searchOnGlobal = !String.IsNullOrWhiteSpace(request.Search.Value);
 
-            Expression columnFilterExpression = null;
             Expression globalFilterExpression = null;
             foreach (DataTableColumn column in request.Columns)
             {
@@ -66,32 +66,36 @@ namespace AdventureWorks.BLL.Services
 
                 var targetValue = (prop != null) ?
                     ExpressionUtility.CallToString(Expression.Property(pe, prop)) : //i.e. customer.AccountNumber
-                    _ppeService.GetExpression<T>(column.Data, pe);
+                    _ppeService.GetExpression<T>(pe, column.Data);
 
                 if (!String.IsNullOrWhiteSpace(column.Search.Value))
                 {
-                    Expression columnSearchValue = ExpressionUtility.CallToString(Expression.Constant(column.Search.Value));
-                    columnFilterExpression = ExpressionUtility.AndAlsoIgnoreNull(
-                        columnFilterExpression,
-                        ExpressionUtility.CallContains(targetValue, columnSearchValue));
+                    var columnContains = ExpressionUtility.CallContains(targetValue, Expression.Constant(column.Search.Value));
+                    data = data.Where(Expression.Lambda<Func<T, bool>>(columnContains, pe));
                 }
 
-                if (!searchOnGlobal)
-                    continue;
-
-                globalFilterExpression = ExpressionUtility.OrElseIgnoreNull(
-                    globalFilterExpression,
-                    ExpressionUtility.CallContains(targetValue, globalSearchValue));
+                if (searchOnGlobal)
+                    globalFilterExpression = ExpressionUtility.OrElseIgnoreNull(
+                        globalFilterExpression,
+                        ExpressionUtility.CallContains(targetValue, globalSearchValue));
             }
+            
+            if (searchOnGlobal)
+                data = data.Where(Expression.Lambda<Func<T, bool>>(globalFilterExpression, pe));
 
-            Expression masterExpression = ExpressionUtility.AndAlsoIgnoreNull(columnFilterExpression, globalFilterExpression);
+            return data;
+        }
 
-            if (masterExpression == null)
-                return data;
 
-            _logger.LogInformation(masterExpression.ToString());
-
-            return data.Where(Expression.Lambda<Func<T, bool>>(masterExpression, pe));
+        public IQueryable<Customer> FilterData2(DataTableServerSideRequest request, IQueryable<Customer> data)
+        {
+            return data.Where(c =>
+                (c.Person != null ?
+                    string.Concat(string.Concat(c.Person.LastName, ", "), c.Person.FirstName):
+                    c.Store != null ?
+                        c.Store.Name :
+                        "Unknown").Contains("A Bik")
+            );
         }
 
         public IQueryable<T> OrderData<T>(DataTableServerSideRequest request, IQueryable<T> data)
@@ -107,7 +111,7 @@ namespace AdventureWorks.BLL.Services
 
                 var exp = (prop != null) ?
                     Expression.Property(pe, prop) :
-                    _ppeService.GetExpression<T>(request.Columns[order.Column].Data, pe);
+                    _ppeService.GetExpression<T>(pe, request.Columns[order.Column].Data);
 
                 var funcType = typeof(Func<,>).MakeGenericType(typeof(T), exp.Type);
 

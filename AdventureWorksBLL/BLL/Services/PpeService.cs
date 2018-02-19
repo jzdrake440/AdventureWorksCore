@@ -14,7 +14,7 @@ namespace AdventureWorks.BLL.Services
             expressions.Add(new Tuple<Type, string>(typeof(T), propertyName.ToUpper()), expressionFunc);
         }
 
-        public Expression GetExpression<T>(string propertyName, Expression parameter)
+        public Expression GetExpression<T>(Expression parameter, string propertyName)
         {
             var func = (Func<Expression, Expression>)expressions[new Tuple<Type, string>(typeof(T), propertyName.ToUpper())];
 
