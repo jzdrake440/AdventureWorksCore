@@ -35,7 +35,8 @@
     "outputFileName": "wwwroot/js/dataTables.js",
     "inputFiles": [
       "node_modules/datatables.net/js/jquery.dataTables.js",
-      "node_modules/datatables.net-bs4/js/dataTables.bootstrap4.js"
+      "node_modules/datatables.net-bs4/js/dataTables.bootstrap4.js",
+      "Scripts/dataTables.searchHeaders.js"
     ],
     "minify": {
       "enabled": false
