@@ -24,5 +24,11 @@ namespace AdventureWorks.Controllers
         {
             return View();
         }
+
+        [HttpGet("Customers/Edit/{id}")]
+        public IActionResult Edit()
+        {
+            return View();
+        }
     }
 }
