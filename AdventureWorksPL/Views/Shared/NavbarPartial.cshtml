@@ -1,0 +1,29 @@
+﻿<div id="navBarWrapper">
+    <nav class="navbar navbar-expand-sm navbar-dark bg-navbar">
+        <a class="navbar-brand" href="#"> @*TODO eventually this will link to home page*@
+            <img src="~/img/aw_logo.png" height="25" alt="aWc">
+        </a> 
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNavBar" aria-controls="mainNavBar" aria-expanded="false" aria-label="Nav Toggle">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNavBar">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link" data-toggle="collapse" href="#customerSubNavBar" aria-expanded="false" aria-controls="customerSubNavBar">Customers</a>
+                <a class="nav-item nav-link" data-toggle="collapse" href="#otherSubNavBar" aria-expanded="false" aria-controls="otherSubNavBar">Option 2</a>
+            </div>
+        </div>
+    </nav>
+    <nav id="customerSubNavBar" class="navbar-expand-sm navbar-collapse collapse navbar-dark bg-navbar-sub" data-parent="#navBarWrapper">
+        <div class="navbar-nav">
+            <a class="nav-item nav-link" href="#">Search</a>
+            <a class="nav-item nav-link" href="#">Add</a> @*TODO*@
+            <a class="nav-item nav-link" href="#">Some Other Customer Action</a> @*TODO*@
+        </div>
+    </nav>
+    <nav id="otherSubNavBar" class="navbar-expand-sm navbar-collapse collapse navbar-dark bg-navbar-sub" data-parent="#navBarWrapper">
+        <div class="navbar-nav">
+            <a class="nav-item nav-link" href="#">Search</a>
+            <a class="nav-item nav-link" href="#">Add Option 2</a> @*TODO*@
+        </div>
+    </nav>
+</div>

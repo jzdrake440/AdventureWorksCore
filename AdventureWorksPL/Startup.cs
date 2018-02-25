@@ -14,6 +14,8 @@ using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 using AdventureWorks.BLL.Services;
 using AdventureWorks.BLL.Utility;
+using System.IO;
+using Microsoft.Extensions.FileProviders;
 
 namespace AdventureWorks
 {
@@ -48,11 +50,17 @@ namespace AdventureWorks
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
 
             app.UseStaticFiles();
+
+            //handler routing of static resources
+            //currently, only handling images; css and js are bundled into wwwroot
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "resources", "img")),
+                RequestPath = "/img"
+            });
             app.UseMvc();
         }
     }

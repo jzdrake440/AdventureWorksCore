@@ -3,7 +3,8 @@
   {
     "outputFileName": "wwwroot/css/bootstrap.css",
     "inputFiles": [
-      "node_modules/bootstrap/dist/css/bootstrap.css"
+      "node_modules/bootstrap/dist/css/bootstrap.css",
+      "Resources/css/aw.css"
     ],
     "minify": {
       "enabled": false
@@ -36,7 +37,7 @@
     "inputFiles": [
       "node_modules/datatables.net/js/jquery.dataTables.js",
       "node_modules/datatables.net-bs4/js/dataTables.bootstrap4.js",
-      "Scripts/dataTables.searchHeaders.js"
+      "Resources/js/dataTables.searchHeaders.js"
     ],
     "minify": {
       "enabled": false

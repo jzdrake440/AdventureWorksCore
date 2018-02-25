@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AdventureWorks.BLL.Services;
 using AdventureWorks.DAL;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,17 +10,17 @@ namespace AdventureWorks.Controllers
 {
     public class CustomersController : Controller
     {
-        private AdventureWorks2017Context _context;
+        private readonly ICustomerService _customers;
 
-        public CustomersController(AdventureWorks2017Context context)
+        public CustomersController(ICustomerService customers)
         {
-            _context = context;
+            _customers = customers;
         }
 
         [Route("")]//TODO remove for home page
         [Route("Customers")]
-        [Route("Customers/Index")]
-        public IActionResult Index()
+        [Route("Customers/Search")]
+        public IActionResult Search()
         {
             return View();
         }
