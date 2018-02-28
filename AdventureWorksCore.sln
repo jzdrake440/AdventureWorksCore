@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F266C055-FD98-48DD-B02D-3AB88A65257A}"
 	ProjectSection(SolutionItems) = preProject
@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdventureWorksDAL", "AdventureWorksDAL\AdventureWorksDAL.csproj", "{211B4729-5233-4919-A6A3-3651A21FB26E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdventureWorksBLL", "AdventureWorksBLL\AdventureWorksBLL.csproj", "{674B4539-13B6-4133-970C-F8B0797EC336}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdventureWorksBLL", "AdventureWorksBLL\AdventureWorksBLL.csproj", "{674B4539-13B6-4133-970C-F8B0797EC336}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdventureWorksPL", "AdventureWorksPL\AdventureWorksPL.csproj", "{6FFEAD59-1F48-4981-AE05-DA87D0EE215A}"
 EndProject

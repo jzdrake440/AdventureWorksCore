@@ -1,8 +1,28 @@
 # AdventureWorksCore
 
+DISCONTINUED:  After finishing a few features and moving on to identity, I got frustrated with the inaccurate documentation.  While searching for updated documentation in github, I found that Microsoft has released a new(er) sample database called "World Wide Imports".  After looking at much better documentation, I have decided to move on to a new project based on that database.  Much of my code will come with me such as the serverSide api for jquery.dataTables.
+
 This is a rework of the infant AdventureWorks project (https://github.com/jzdrake440/AdventureWorks) for the ASP.NET Core MVC framework.  The migration was mostly smooth and I have started working on bug fixes and new features.
 
 This project is developing usability pages for the data definition for Adventure Works Cycles, a sample database provided by Microsoft.  As a recently discovered problem, the data definition has key issues that are now causing problems.  After some experimental development, the project has moved to a 3 tier architecture. This will promote better DRY principles.
+
+## Completed Features
+### Feature 1
+Implemented Entity Framework Core with Database First approach.
+### Feature 2
+Implemented jquery.dataTables with serverSide processing.
+### Feature 3
+Created a dynamic expression builder for DataTables to allow dynamic queries through the entity framework.
+### Feature 4
+Create Phantom Property Expression Service to intercept custom properties that exist in the BLL, but not in the DAL.  The PPE Service would return an Expression to allow the custom property to execute on the db side.
+### Feature 5
+Created a mini-plugin for jquery.dataTables to allow column specific searching by adding a search input to the header of each column.
+### Feature 6
+Configured Extensions:
+-Bundler and Minifier
+-AutoMapper
+### Feature 7
+Created 2 tier navbar using Bootstrap 4
 
 
 ## Problem 1
